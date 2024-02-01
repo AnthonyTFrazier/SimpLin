@@ -1,0 +1,17 @@
+Package: SimpLin
+Type: Package
+Title: She does simple linear regression
+Version: 1.0
+Date: 2024-01-28
+Authors: Anthony Frazier
+Maintainer: Anthony Frazier <anthony.frazier122@gmail.com>
+Description: She does simple linear regression. Give her a Y and an X, and she will provide you with
+    the results you desire (coefficients, standard errors, confidence intervals, 
+    residuals, predicted values, what more could a girl want?)
+License: She's independent
+Imports: Rcpp (>= 1.0.11)
+LinkingTo: Rcpp, RcppArmadillo
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

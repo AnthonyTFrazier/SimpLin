@@ -1,0 +1,94 @@
+---
+title: "SimpLin-Vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{SimpLin-Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(SimpLin)
+```
+
+# Introduction
+
+SimpLin is a package with only one function: running simple linear regression. Specifically, it is built to fit an OLS regression model between a univariate, numeric outcome Y with a univariate, numeric covariate X. Aside from fitting an OLS regression model, SimpLin's function will print out a variety of useful objects related to regression. 
+
+# Description of Function
+
+The function in SimpLin that runs OLS regression is **SimpLinR**. SimpLinR takes two arguments:
+
+* **Y**: The first argument is a numeric vector that we would like to make predictions about. 
+* **X**: The second argument is also a numeric vector that we are using to try and predict Y.
+
+There are a variety of restrictions on what type of data can be inserted as arguments into the SimpLinR function:
+
+* Both X and Y _must_ be numeric vectors. If the vectors are not numeric (e.g. has character elements), SimpLinR will return an error message. 
+* X and Y _must_ be of the same length. If the vectors do not have the same length, SimpLinR will return an error message. 
+
+With simple linear regression, we aim to describe a linear relationship between two variables, X and Y. We suppose the follow model:
+
+$$Y_i = \beta_0 + \beta_1X_i + \epsilon_i$$
+We view $\epsilon_i$ as a mean-zero random variable with finite variance representing noise / error, and we view $\beta_0$ and $\beta_1$ as fixed, unknown parameters we wish to estimate.
+
+SimpLinR will return a variety of useful objects.
+
+* **$Coefficients**: A numeric column vector (length 2) containing the OLS estimates for $\beta_0$ and $\beta_1$. The first row corresponds to $\hat{\beta_0}$, and the second row corresponds to $\hat{\beta_0}$. 
+* **$Predicted**: A numeric column vector (length n, n being the length of X) containing the predicted values of the outcome variable $Y$ based on the linear regression model fit with $X$. Specifically, the $i$th row **$Predicted**, denoted as $\hat{Y_i}$, is calculated by $\hat{Y_i} = \hat{\beta_0} + \hat{\beta_1}X_i$.
+* **$Residuals**: A numeric column vector (length n) containing the residuals for each observation. Specifically, the $i$th row of **$Residuals**, denoted as $e_i$, is calculated by $e_i = Y_i - \hat{Y_i}$.
+* **$Standard_Errors**: A numeric column vector (length 2) containing the standard errors for $\hat{\beta_0}$ and $\hat{\beta_1}$.
+* **$CI_Intercept**: A numeric column vector (length 2) showing the 95% confidence interval for $\hat{\beta_0}$. The first row corresponds to the lower bound of the confidence interval, and the second row corresponds to the upper bound.
+* **$CI_Slope**: A numeric column vector (length 2) showing the 95% confidence itnerval for $\hat{\beta_1}$. Similarly, the first and second rows correspond to the lower and upper bounds of the confidence interval.
+
+# Example of SimpLinR
+
+First, let's generate some data. 
+
+```{R}
+set.seed(600)
+X = rnorm(100)
+Y = 1 + 5*X + rnorm(100)
+```
+
+In this example, we generate 100 $i.i.d$ values from a standard normal distribution to generate $X$. We suppose $\epsilon_i \sim N(0, 1)$, assuming $i.i.d$ error terms. Last, we set $\beta_0 = 1$ and $\beta_1 = 5$
+
+Then, we can fit a simple linear regression model with X and Y using SimpLinR.
+
+```{R}
+model <- SimpLinR(Y, X)
+model$Coefficients
+```
+Our calculations for $\hat{\beta_0}$ and $\hat{\beta_1}$ seem to closely approximate the true values of $\beta_0$ and $\beta_1$. Let's now show how our simple linear regression model fits with our generated data. 
+
+```{R}
+plot(X, Y)
+points(X, model$Predicted, col = "red")
+```
+The true data are shown in black dots, while the fitted values from **$Predicted** are shown in red. Since the true data generation process is quite linear between X and Y, the fitted values from our linear regression model appear to fit the data well. 
+
+One core assumption we make when we fit a simple linear regression model is that our error terms are $i.i.d$. We can visually assess whether we can make or not make that assumption by fitting the fitted values of $Y$ against the residuals from our model. 
+
+```{R}
+plot(model$Predicted, model$Residuals)
+abline(h = 0, col = "blue")
+```
+The residuals appear to be centered around zero, and there does not appear to be any clear relationship between the predicted values of $Y$ and the residuals of $Y$. This aligns with our data generation process, as we specified $\epsilon$ to be $i.i.d$. One last thing we might be interested in checking is if the confidence interval we calculated contains $\beta_0$ and $\beta_1$.
+
+```{R}
+model$CI_Intercept
+```
+The confidence interval for the intercept does contain $\beta_0$ in this case. 
+
+```{R}
+model$CI_Slope
+```
+
+The confidence interval for the slope slightly misses $\beta_1$, which can happen from time to time. 
